@@ -256,6 +256,8 @@ namespace Propane
         public Address Deref();
         public Address AddrOf();
         public Address SizeOf();
+
+        public Address ToAddress();
     }
 
     public struct Prefixable : IPrefixable
@@ -277,11 +279,7 @@ namespace Propane
 
         public static implicit operator Address(Prefixable prefixable)
         {
-            return new Address
-            {
-                header = new(prefixable.type, Address.Prefix.None, prefixable.modifier, prefixable.index),
-                payload = prefixable.payload,
-            };
+            return prefixable.ToAddress();
         }
 
         public Address Deref()
@@ -309,6 +307,15 @@ namespace Propane
             };
         }
 
+        public Address ToAddress()
+        {
+            return new Address
+            {
+                header = new(type, Address.Prefix.None, modifier, index),
+                payload = payload,
+            };
+        }
+
         internal Address.Type type;
         internal Index index;
         internal Address.Modifier modifier;
@@ -320,6 +327,8 @@ namespace Propane
         public Prefixable this[nint offset] { get; }
         public Prefixable Field(OffsetIdx field);
         public Prefixable DerefField(OffsetIdx field);
+
+        public Address ToAddress();
     }
 
     public struct Stack : IPrefixable, IModifyable
@@ -333,10 +342,7 @@ namespace Propane
 
         public static implicit operator Address(Stack stackvar)
         {
-            return new Address
-            {
-                header = new(Address.Type.Stackvar, Address.Prefix.None, Address.Modifier.None, stackvar.index),
-            };
+            return stackvar.ToAddress();
         }
 
         public Address Deref()
@@ -350,6 +356,14 @@ namespace Propane
         public Address SizeOf()
         {
             return new(index, Type, prefix: Address.Prefix.SizeOf);
+        }
+
+        public Address ToAddress()
+        {
+            return new Address
+            {
+                header = new(Address.Type.Stackvar, Address.Prefix.None, Address.Modifier.None, index),
+            };
         }
 
         public Prefixable this[nint offset]
@@ -384,10 +398,7 @@ namespace Propane
 
         public static implicit operator Address(Param param)
         {
-            return new Address
-            {
-                header = new(Address.Type.Parameter, Address.Prefix.None, Address.Modifier.None, param.index),
-            };
+            return param.ToAddress();
         }
 
         public Address Deref()
@@ -401,6 +412,14 @@ namespace Propane
         public Address SizeOf()
         {
             return new(index, Type, prefix: Address.Prefix.SizeOf);
+        }
+
+        public Address ToAddress()
+        {
+            return new Address
+            {
+                header = new(Address.Type.Parameter, Address.Prefix.None, Address.Modifier.None, index),
+            };
         }
 
         public Prefixable this[nint offset]
@@ -433,10 +452,7 @@ namespace Propane
 
         public static implicit operator Address(Global global)
         {
-            return new Address
-            {
-                header = new Address.Header(Address.Type.Global, Address.Prefix.None, Address.Modifier.None, (Index)global.name),
-            };
+            return global.ToAddress();
         }
 
         public Address Deref()
@@ -450,6 +466,14 @@ namespace Propane
         public Address SizeOf()
         {
             return new Address((Index)name, Type, prefix: Address.Prefix.SizeOf);
+        }
+
+        public Address ToAddress()
+        {
+            return new Address
+            {
+                header = new Address.Header(Address.Type.Global, Address.Prefix.None, Address.Modifier.None, (Index)name),
+            };
         }
 
         public Prefixable this[nint offset]
