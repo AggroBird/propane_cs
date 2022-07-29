@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Propane
@@ -8,6 +9,8 @@ namespace Propane
     [StructLayout(LayoutKind.Explicit, Pack = 4)]
     public struct Address
     {
+        public static readonly Address Invalid = new Constant(NameIdx.Invalid);
+
         public enum Type : byte
         {
             Stackvar,
@@ -137,6 +140,34 @@ namespace Propane
         {
             header = new(type, prefix, modifier, index);
             payload = new Payload { u64 = 0 };
+        }
+
+
+        public override bool Equals([NotNullWhen(true)] object? obj)
+        {
+            if (obj is Address other)
+            {
+                return Equals(other);
+            }
+            return false;
+        }
+        public bool Equals(Address address)
+        {
+            return header.value == address.header.value && payload.u64 == address.payload.u64;
+        }
+
+        public override int GetHashCode()
+        {
+            return header.value.GetHashCode() ^ payload.u64.GetHashCode();
+        }
+
+        public static bool operator ==(Address lhs, Address rhs)
+        {
+            return lhs.Equals(rhs);
+        }
+        public static bool operator !=(Address lhs, Address rhs)
+        {
+            return !lhs.Equals(rhs);
         }
     }
 
