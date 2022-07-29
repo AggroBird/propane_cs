@@ -85,9 +85,9 @@ namespace Propane
             Write((Index)0);
             if (children == null)
             {
-                children = new List<BinaryWriter>();
+                children = new();
             }
-            BinaryWriter child = new BinaryWriter(offset);
+            BinaryWriter child = new(offset);
             children.Add(child);
             return child;
         }

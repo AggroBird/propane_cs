@@ -13,8 +13,8 @@ namespace Propane
             public string name;
         }
 
-        private List<Entry> entries = new List<Entry>();
-        private Dictionary<string, int> lookup = new Dictionary<string, int>();
+        private readonly List<Entry> entries = new();
+        private readonly Dictionary<string, int> lookup = new();
 
         private static int KeyToInt(TKey key) => Unsafe.As<TKey, int>(ref key);
         private static TKey IntToKey(int i) => Unsafe.As<int, TKey>(ref i);

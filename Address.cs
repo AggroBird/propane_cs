@@ -8,7 +8,7 @@ namespace Propane
     [StructLayout(LayoutKind.Explicit, Pack = 4)]
     public struct Address
     {
-        internal enum Type : byte
+        public enum Type : byte
         {
             Stackvar,
             Parameter,
@@ -16,7 +16,7 @@ namespace Propane
             Constant,
         }
 
-        internal enum Prefix : byte
+        public enum Prefix : byte
         {
             None,
             Indirection,
@@ -24,7 +24,7 @@ namespace Propane
             SizeOf,
         }
 
-        internal enum Modifier : byte
+        public enum Modifier : byte
         {
             None,
             DirectField,
@@ -33,7 +33,7 @@ namespace Propane
         }
 
         [StructLayout(LayoutKind.Explicit, Pack = 4)]
-        internal struct Header
+        public struct Header
         {
             private const Index FlagMask = 0b11;
             private const int IndexBitCount = 26;
@@ -42,26 +42,26 @@ namespace Propane
             private const int ModifierOffset = 26;
             internal const Index IndexMax = 0xFFFFFFFF >> (32 - IndexBitCount);
 
-            [FieldOffset(0)] public Index value;
+            [FieldOffset(0)] internal Index value;
 
-            public Header(Index value)
+            internal Header(Index value)
             {
                 this.value = value;
             }
-            public Header(Type type, Prefix prefix, Modifier modifier, Index index)
+            internal Header(Type type, Prefix prefix, Modifier modifier, Index index)
             {
                 value = index & IndexMax;
                 value |= ((Index)type & FlagMask) << TypeOffset;
                 value |= ((Index)prefix & FlagMask) << PrefixOffset;
                 value |= ((Index)modifier & FlagMask) << ModifierOffset;
             }
-            public Header(TypeIdx constantType)
+            internal Header(TypeIdx constantType)
             {
                 value = (Index)constantType & IndexMax;
                 value |= ((Index)Type.Constant) << TypeOffset;
             }
 
-            public Type type
+            public Type Type
             {
                 get
                 {
@@ -73,7 +73,7 @@ namespace Propane
                     this.value |= ((Index)value & FlagMask) << TypeOffset;
                 }
             }
-            public Prefix prefix
+            public Prefix Prefix
             {
                 get
                 {
@@ -85,7 +85,7 @@ namespace Propane
                     this.value |= ((Index)value & FlagMask) << PrefixOffset;
                 }
             }
-            public Modifier modifier
+            public Modifier Modifier
             {
                 get
                 {
@@ -97,7 +97,7 @@ namespace Propane
                     this.value |= ((Index)value & FlagMask) << ModifierOffset;
                 }
             }
-            public Index index
+            public Index Index
             {
                 get
                 {
@@ -112,7 +112,7 @@ namespace Propane
         }
 
         [StructLayout(LayoutKind.Explicit, Pack = 4)]
-        internal struct Payload
+        public struct Payload
         {
             [FieldOffset(0)] public sbyte i8;
             [FieldOffset(0)] public byte u8;
@@ -130,12 +130,12 @@ namespace Propane
             [FieldOffset(0)] public nint offset;
         }
 
-        [FieldOffset(0)] internal Header header;
-        [FieldOffset(4)] internal Payload payload;
+        [FieldOffset(0)] public Header header;
+        [FieldOffset(4)] public Payload payload;
 
         internal Address(Index index, Type type, Modifier modifier = Modifier.None, Prefix prefix = Prefix.None)
         {
-            header = new Header(type, prefix, modifier, index);
+            header = new(type, prefix, modifier, index);
             payload = new Payload { u64 = 0 };
         }
     }
@@ -205,7 +205,7 @@ namespace Propane
             value = new Address.Payload { global = global };
         }
 
-        public static readonly Constant NullPtr = new Constant { type = TypeIdx.VPtr, value = new Address.Payload { vptr = 0 }, };
+        public static readonly Constant NullPtr = new() { type = TypeIdx.VPtr, value = new Address.Payload { vptr = 0 }, };
 
         internal TypeIdx type;
         internal Address.Payload value;
@@ -214,7 +214,7 @@ namespace Propane
         {
             return new Address
             {
-                header = new Address.Header(constant.type),
+                header = new(constant.type),
                 payload = constant.value,
             };
         }
@@ -248,7 +248,7 @@ namespace Propane
         {
             return new Address
             {
-                header = new Address.Header(prefixable.type, Address.Prefix.None, prefixable.modifier, prefixable.index),
+                header = new(prefixable.type, Address.Prefix.None, prefixable.modifier, prefixable.index),
                 payload = prefixable.payload,
             };
         }
@@ -257,7 +257,7 @@ namespace Propane
         {
             return new Address
             {
-                header = new Address.Header(type, Address.Prefix.Indirection, modifier, index),
+                header = new(type, Address.Prefix.Indirection, modifier, index),
                 payload = payload,
             };
         }
@@ -265,7 +265,7 @@ namespace Propane
         {
             return new Address
             {
-                header = new Address.Header(type, Address.Prefix.AddressOf, modifier, index),
+                header = new(type, Address.Prefix.AddressOf, modifier, index),
                 payload = payload,
             };
         }
@@ -273,7 +273,7 @@ namespace Propane
         {
             return new Address
             {
-                header = new Address.Header(type, Address.Prefix.SizeOf, modifier, index),
+                header = new(type, Address.Prefix.SizeOf, modifier, index),
                 payload = payload,
             };
         }
@@ -304,42 +304,42 @@ namespace Propane
         {
             return new Address
             {
-                header = new Address.Header(Address.Type.Stackvar, Address.Prefix.None, Address.Modifier.None, stackvar.index),
+                header = new(Address.Type.Stackvar, Address.Prefix.None, Address.Modifier.None, stackvar.index),
             };
         }
 
         public Address Deref()
         {
-            return new Address(index, Type, prefix: Address.Prefix.Indirection);
+            return new(index, Type, prefix: Address.Prefix.Indirection);
         }
         public Address AddrOf()
         {
-            return new Address(index, Type, prefix: Address.Prefix.AddressOf);
+            return new(index, Type, prefix: Address.Prefix.AddressOf);
         }
         public Address SizeOf()
         {
-            return new Address(index, Type, prefix: Address.Prefix.SizeOf);
+            return new(index, Type, prefix: Address.Prefix.SizeOf);
         }
 
         public Prefixable this[nint offset]
         {
             get
             {
-                return new Prefixable(Type, index, offset);
+                return new(Type, index, offset);
             }
         }
         public Prefixable Field(OffsetIdx field)
         {
-            return new Prefixable(Type, index, field, true);
+            return new(Type, index, field, true);
         }
         public Prefixable DerefField(OffsetIdx field)
         {
-            return new Prefixable(Type, index, field, false);
+            return new(Type, index, field, false);
         }
 
         internal Index index;
 
-        public static readonly Stack RetVal = new Stack(Address.Header.IndexMax);
+        public static readonly Stack RetVal = new(Address.Header.IndexMax);
     }
 
     public struct Param : IPrefixable, IModifyable
@@ -355,37 +355,37 @@ namespace Propane
         {
             return new Address
             {
-                header = new Address.Header(Address.Type.Parameter, Address.Prefix.None, Address.Modifier.None, param.index),
+                header = new(Address.Type.Parameter, Address.Prefix.None, Address.Modifier.None, param.index),
             };
         }
 
         public Address Deref()
         {
-            return new Address(index, Type, prefix: Address.Prefix.Indirection);
+            return new(index, Type, prefix: Address.Prefix.Indirection);
         }
         public Address AddrOf()
         {
-            return new Address(index, Type, prefix: Address.Prefix.AddressOf);
+            return new(index, Type, prefix: Address.Prefix.AddressOf);
         }
         public Address SizeOf()
         {
-            return new Address(index, Type, prefix: Address.Prefix.SizeOf);
+            return new(index, Type, prefix: Address.Prefix.SizeOf);
         }
 
         public Prefixable this[nint offset]
         {
             get
             {
-                return new Prefixable(Type, index, offset);
+                return new(Type, index, offset);
             }
         }
         public Prefixable Field(OffsetIdx field)
         {
-            return new Prefixable(Type, index, field, true);
+            return new(Type, index, field, true);
         }
         public Prefixable DerefField(OffsetIdx field)
         {
-            return new Prefixable(Type, index, field, false);
+            return new(Type, index, field, false);
         }
 
         internal Index index;

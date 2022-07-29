@@ -120,7 +120,7 @@ namespace Propane
             new BaseTypeInfo(TypeIdx.U64, "ulong", 8),
             new BaseTypeInfo(TypeIdx.F32, "float", 4),
             new BaseTypeInfo(TypeIdx.F64, "double", 8),
-            new BaseTypeInfo(TypeIdx.VPtr, "void*", (nuint)(Platform.architecture == Architecture.x32 ? 4 : 8)),
+            new BaseTypeInfo(TypeIdx.VPtr, "void*", (nuint)(Platform.Architecture == Architecture.x32 ? 4 : 8)),
             new BaseTypeInfo(TypeIdx.Void, "void", 0),
         };
 

@@ -49,7 +49,7 @@ namespace Propane
         }
         public static void WriteConstant(this BinaryWriter writer, Address constant)
         {
-            switch ((TypeIdx)constant.header.index)
+            switch ((TypeIdx)constant.header.Index)
             {
                 case TypeIdx.I8: writer.Write(constant.payload.i8); break;
                 case TypeIdx.U8: writer.Write(constant.payload.u8); break;
@@ -174,7 +174,7 @@ namespace Propane
         public static bool operator ==(BinaryKey lhs, BinaryKey rhs) => lhs.Equals(rhs);
         public static bool operator !=(BinaryKey lhs, BinaryKey rhs) => !lhs.Equals(rhs);
 
-        private byte[] value;
+        private readonly byte[] value;
     }
 
     internal struct LookupIdx
@@ -261,7 +261,7 @@ namespace Propane
             }
 
             // Initialize aliases
-            TypeIdx sizeTypes = Platform.architecture == Architecture.x32 ? TypeIdx.I32 : TypeIdx.I64;
+            TypeIdx sizeTypes = Platform.Architecture == Architecture.x32 ? TypeIdx.I32 : TypeIdx.I64;
             for (int i = 0; i < Language.AliasTypes.Length; i++)
             {
                 database.Emplace(Language.AliasTypes[i], new LookupIdx(sizeTypes + (Index)i));
@@ -308,7 +308,7 @@ namespace Propane
             public readonly NameIdx name;
             public readonly TypeIdx index;
             public TypeFlags flags;
-            public bool isDefined => (flags & TypeFlags.IsDefined) != TypeFlags.None;
+            public bool IsDefined => (flags & TypeFlags.IsDefined) != TypeFlags.None;
 
             [StructLayout(LayoutKind.Explicit, Pack = 4)]
             public struct GeneratedType
@@ -339,7 +339,7 @@ namespace Propane
 
             public GeneratedType generated;
 
-            public Field[] fields = new Field[0];
+            public Field[] fields = Array.Empty<Field>();
             public nuint totalSize = 0;
 
             public TypeIdx pointerType = TypeIdx.Invalid;
@@ -430,17 +430,17 @@ namespace Propane
                 return id;
             }
 
-            public IReadOnlyList<Field> fields => fieldList;
+            public IReadOnlyList<Field> Fields => fieldList;
 
-            private List<Field> fieldList = new List<Field>();
+            private readonly List<Field> fieldList = new();
 
-            private MetaIdx meta = MetaIdx.Invalid;
-            private Index lineNumber = 0;
+            private readonly MetaIdx meta;
+            private readonly Index lineNumber;
 
             public void Export()
             {
                 var dst = gen.GetType(index);
-                if (dst.isDefined)
+                if (dst.IsDefined)
                 {
                     throw new Exception();
                 }
@@ -467,17 +467,17 @@ namespace Propane
             public readonly NameIdx name;
             public readonly MethodIdx index;
             public TypeFlags flags;
-            public bool isDefined => (flags & TypeFlags.IsDefined) != TypeFlags.None;
+            public bool IsDefined => (flags & TypeFlags.IsDefined) != TypeFlags.None;
 
             public SignatureIdx signature = SignatureIdx.Invalid;
 
-            public byte[] bytecode = new byte[0];
-            public nuint[] labels = new nuint[0];
-            public TypeIdx[] stackvars = new TypeIdx[0];
+            public byte[] bytecode = Array.Empty<byte>();
+            public nuint[] labels = Array.Empty<nuint>();
+            public TypeIdx[] stackvars = Array.Empty<TypeIdx>();
 
-            public MethodIdx[] calls = new MethodIdx[0];
-            public GlobalIdx[] globals = new GlobalIdx[0];
-            public OffsetIdx[] offsets = new OffsetIdx[0];
+            public MethodIdx[] calls = Array.Empty<MethodIdx>();
+            public GlobalIdx[] globals = Array.Empty<GlobalIdx>();
+            public OffsetIdx[] offsets = Array.Empty<OffsetIdx>();
 
             public MetaIdx meta = MetaIdx.Invalid;
             public Index lineNumber = 0;
@@ -519,27 +519,27 @@ namespace Propane
                 stackvars.Add(type);
             }
 
-            public IReadOnlyList<TypeIdx> stack => stackvars;
+            public IReadOnlyList<TypeIdx> Stack => stackvars;
 
-            private readonly List<TypeIdx> stackvars = new List<TypeIdx>();
-            private readonly BinaryWriter bytecode = new BinaryWriter();
+            private readonly List<TypeIdx> stackvars = new();
+            private readonly BinaryWriter bytecode = new();
 
-            private readonly Dictionary<MethodIdx, int> callLookup = new Dictionary<MethodIdx, int>();
-            private readonly List<MethodIdx> calls = new List<MethodIdx>();
+            private readonly Dictionary<MethodIdx, int> callLookup = new();
+            private readonly List<MethodIdx> calls = new();
 
-            private readonly Dictionary<NameIdx, int> globalLookup = new Dictionary<NameIdx, int>();
-            private readonly List<GlobalIdx> globals = new List<GlobalIdx>();
+            private readonly Dictionary<NameIdx, int> globalLookup = new();
+            private readonly List<GlobalIdx> globals = new();
 
-            private readonly Dictionary<OffsetIdx, int> offsetLookup = new Dictionary<OffsetIdx, int>();
-            private readonly List<OffsetIdx> offsets = new List<OffsetIdx>();
+            private readonly Dictionary<OffsetIdx, int> offsetLookup = new();
+            private readonly List<OffsetIdx> offsets = new();
 
-            private readonly Dictionary<LabelIdx, int> labelLocations = new Dictionary<LabelIdx, int>();
-            private readonly Dictionary<LabelIdx, List<int>> unresolvedBranches = new Dictionary<LabelIdx, List<int>>();
-            private readonly Database<Index, LabelIdx> namedLabels = new Database<Index, LabelIdx>();
-            private readonly List<Index> labelDeclarations = new List<Index>();
+            private readonly Dictionary<LabelIdx, int> labelLocations = new();
+            private readonly Dictionary<LabelIdx, List<int>> unresolvedBranches = new();
+            private readonly Database<Index, LabelIdx> namedLabels = new();
+            private readonly List<Index> labelDeclarations = new();
 
-            private MetaIdx meta = MetaIdx.Invalid;
-            private Index lineNumber = 0;
+            private readonly MetaIdx meta;
+            private readonly Index lineNumber;
 
             private int lastReturn = 0;
 
@@ -575,7 +575,7 @@ namespace Propane
                     throw new Exception();
                 }
 
-                if (labelLocations.TryGetValue(label, out var locations))
+                if (labelLocations.ContainsKey(label))
                 {
                     throw new Exception();
                 }
@@ -585,13 +585,13 @@ namespace Propane
 
             private bool ValidateAddress(Address addr)
             {
-                switch (addr.header.type)
+                switch (addr.header.Type)
                 {
                     case Address.Type.Stackvar:
                     {
-                        if (addr.header.index != Address.Header.IndexMax)
+                        if (addr.header.Index != Address.Header.IndexMax)
                         {
-                            if (addr.header.index >= stackvars.Count)
+                            if (addr.header.Index >= stackvars.Count)
                             {
                                 throw new Exception();
                             }
@@ -601,7 +601,7 @@ namespace Propane
 
                     case Address.Type.Parameter:
                     {
-                        if (addr.header.index >= parameterCount)
+                        if (addr.header.Index >= parameterCount)
                         {
                             throw new Exception();
                         }
@@ -618,7 +618,7 @@ namespace Propane
             }
             private bool ValidateOperand(Address addr)
             {
-                if (addr.header.type == Address.Type.Constant)
+                if (addr.header.Type == Address.Type.Constant)
                 {
                     return true;
                 }
@@ -645,24 +645,24 @@ namespace Propane
                 Address.Header header = addr.header;
                 AddressPayload data = default;
 
-                switch (header.type)
+                switch (header.Type)
                 {
                     case Address.Type.Global:
                     {
-                        NameIdx globalName = (NameIdx)header.index;
+                        NameIdx globalName = (NameIdx)header.Index;
                         if (!globalLookup.TryGetValue(globalName, out var idx))
                         {
                             idx = globals.Count;
                             globalLookup.Add(globalName, idx);
                             globals.Add((GlobalIdx)globalName);
-                            header.index = (Index)idx;
+                            header.Index = (Index)idx;
                         }
-                        header.index = (Index)idx;
+                        header.Index = (Index)idx;
                     }
                     break;
                 }
 
-                switch (header.modifier)
+                switch (header.Modifier)
                 {
                     case Address.Modifier.None: break;
 
@@ -692,7 +692,7 @@ namespace Propane
             }
             private void WriteOperand(Address addr)
             {
-                if (addr.header.type == Address.Type.Constant)
+                if (addr.header.Type == Address.Type.Constant)
                 {
                     bytecode.Write(addr.header);
                     bytecode.WriteConstant(addr);
@@ -922,7 +922,7 @@ namespace Propane
             }
             public void WriteRet()
             {
-                if (signatureRef.hasReturnValue)
+                if (signatureRef.HasReturnValue)
                 {
                     throw new Exception();
                 }
@@ -933,7 +933,7 @@ namespace Propane
             }
             public void WriteRetv(Address address)
             {
-                if (!signatureRef.hasReturnValue)
+                if (!signatureRef.HasReturnValue)
                 {
                     throw new Exception();
                 }
@@ -961,12 +961,12 @@ namespace Propane
             public void Export()
             {
                 var dst = gen.GetMethod(index);
-                if (dst.isDefined)
+                if (dst.IsDefined)
                 {
                     throw new Exception();
                 }
 
-                if (signatureRef.hasReturnValue)
+                if (signatureRef.HasReturnValue)
                 {
                     if (lastReturn != bytecode.Count || bytecode.Count == 0)
                     {
@@ -974,8 +974,8 @@ namespace Propane
                     }
                 }
 
-                List<nuint> exportLabels = new List<nuint>();
-                SortedDictionary<int, List<LabelIdx>> writeLabels = new SortedDictionary<int, List<LabelIdx>>();
+                List<nuint> exportLabels = new();
+                SortedDictionary<int, List<LabelIdx>> writeLabels = new();
                 foreach (var branch in unresolvedBranches)
                 {
                     if (!labelLocations.TryGetValue(branch.Key, out int location))
@@ -1008,7 +1008,7 @@ namespace Propane
                     }
                     if (label.Key >= bytecode.Count)
                     {
-                        if (signatureRef.hasReturnValue)
+                        if (signatureRef.HasReturnValue)
                         {
                             throw new Exception();
                         }
@@ -1060,7 +1060,7 @@ namespace Propane
             public TypeIdx[] parameters;
             public TypeIdx signatureType = TypeIdx.Invalid;
 
-            public bool hasReturnValue => returnType != TypeIdx.Void;
+            public bool HasReturnValue => returnType != TypeIdx.Void;
         }
 
 
@@ -1102,13 +1102,13 @@ namespace Propane
         }
 
         // Reusable temporary buffers
-        private BinaryWriter keyBuf = new BinaryWriter();
-        private List<Constant> constantBuf = new List<Constant>();
-        private List<TypeIdx> typeBuf = new List<TypeIdx>();
-        private List<NameIdx> nameBuf = new List<NameIdx>();
-        private List<Address> addressBuf = new List<Address>();
-        private Constant[] constantArr = new Constant[1];
-        private NameIdx[] nameArr = new NameIdx[1];
+        private BinaryWriter keyBuf = new();
+        private readonly List<Constant> constantBuf = new();
+        private readonly List<TypeIdx> typeBuf = new();
+        private readonly List<NameIdx> nameBuf = new();
+        private readonly List<Address> addressBuf = new();
+        private readonly Constant[] constantArr = new Constant[1];
+        private readonly NameIdx[] nameArr = new NameIdx[1];
 
         public SignatureIdx MakeSignature(TypeIdx returnType, IEnumerable<TypeIdx>? parameterTypes)
         {
@@ -1129,14 +1129,14 @@ namespace Propane
             }
 
             // Ensure unique
-            BinaryKey key = new BinaryKey(ref keyBuf, retType.index, parameterTypes);
+            BinaryKey key = new(ref keyBuf, retType.index, parameterTypes);
             if (signatureLookup.TryGetValue(key, out SignatureIdx signature))
             {
                 return signature;
             }
             // Write new
             signature = (SignatureIdx)signatures.Count;
-            Signature sig = new Signature(signature, returnType, typeBuf.ToArray());
+            Signature sig = new(signature, returnType, typeBuf.ToArray());
             signatureLookup.Add(key, signature);
             signatures.Add(sig);
             return signature;
@@ -1157,7 +1157,7 @@ namespace Propane
             }
 
             // Ensure unique
-            BinaryKey key = new BinaryKey(ref keyBuf, rootType.index, fields);
+            BinaryKey key = new(ref keyBuf, rootType.index, fields);
             if (offsetLookup.TryGetValue(key, out OffsetIdx offset))
             {
                 return offset;
@@ -1165,7 +1165,7 @@ namespace Propane
 
             // Write new
             offset = (OffsetIdx)offsets.Count;
-            Offset off = new Offset(offset, rootType.index, nameBuf.ToArray());
+            Offset off = new(offset, rootType.index, nameBuf.ToArray());
             offsetLookup.Add(key, offset);
             offsets.Add(off);
             return offset;
@@ -1192,7 +1192,7 @@ namespace Propane
 
             // Append
             NameIdx[] appended = nameBuf.ToArray();
-            BinaryKey key = new BinaryKey(ref keyBuf, off.objectType, appended);
+            BinaryKey key = new(ref keyBuf, off.objectType, appended);
 
             // Ensure unique
             if (offsetLookup.TryGetValue(key, out offset))
@@ -1225,7 +1225,7 @@ namespace Propane
                 throw new Exception();
             }
 
-            Type globalType = GetType(type);
+            GetType(type);
 
             // Validate initializers
             constantBuf.Clear();
@@ -1326,7 +1326,7 @@ namespace Propane
         public TypeWriter DefineType(TypeIdx type, bool isUnion = false)
         {
             var dst = GetType(type);
-            if (dst.isDefined || dst.writer != null)
+            if (dst.IsDefined || dst.writer != null)
             {
                 throw new Exception();
             }
@@ -1346,7 +1346,7 @@ namespace Propane
             {
                 // New pointer type
                 TypeIdx idx = (TypeIdx)types.Count;
-                Type generated = new Type(NameIdx.Invalid, idx);
+                Type generated = new(NameIdx.Invalid, idx);
                 generated.MakePointer(baseType);
                 generated.flags |= TypeFlags.IsDefined;
                 type.pointerType = idx;
@@ -1358,11 +1358,11 @@ namespace Propane
         public TypeIdx DeclareArrayType(TypeIdx baseType, nuint arraySize)
         {
             var type = GetType(baseType);
-            if (type.arrayTypes == null || !type.arrayTypes.TryGetValue(arraySize, out TypeIdx idx))
+            if (type.arrayTypes == null || !type.arrayTypes.ContainsKey(arraySize))
             {
                 // New array type
-                idx = (TypeIdx)types.Count;
-                Type generated = new Type(NameIdx.Invalid, idx);
+                TypeIdx idx = (TypeIdx)types.Count;
+                Type generated = new(NameIdx.Invalid, idx);
                 generated.MakeArray(baseType, arraySize);
                 generated.flags |= TypeFlags.IsDefined;
                 if (type.arrayTypes == null)
@@ -1382,7 +1382,7 @@ namespace Propane
             {
                 // New signature type
                 TypeIdx idx = (TypeIdx)types.Count;
-                Type generated = new Type(NameIdx.Invalid, idx);
+                Type generated = new(NameIdx.Invalid, idx);
                 generated.MakeSignature(signature);
                 generated.flags |= TypeFlags.IsDefined;
                 sig.signatureType = idx;
@@ -1424,7 +1424,7 @@ namespace Propane
         public MethodWriter DefineMethod(MethodIdx method, SignatureIdx signature)
         {
             var dst = GetMethod(method);
-            if (dst.isDefined || dst.writer != null)
+            if (dst.IsDefined || dst.writer != null)
             {
                 throw new Exception();
             }
@@ -1440,14 +1440,14 @@ namespace Propane
 
         public byte[] Export()
         {
-            BinaryWriter exporter = new BinaryWriter();
+            BinaryWriter exporter = new();
 
             // Insert header
             for (int i = 0; i < Language.IntermediateHeader.Length; i++)
             {
                 exporter.Write((byte)Language.IntermediateHeader[i]);
             }
-            exporter.Write(Platform.version);
+            exporter.Write(Platform.VersionNumber);
 
             // Write types
             var typeList = exporter.WriteDeferred();
@@ -1593,7 +1593,7 @@ namespace Propane
         }
 
 
-        private readonly Database<NameIdx, LookupIdx> database = new Database<NameIdx, LookupIdx>();
+        private readonly Database<NameIdx, LookupIdx> database = new();
         private NameIdx EmplaceIdentifier(string name)
         {
             if (database.TryGetValue(name, out var entry))
@@ -1613,7 +1613,7 @@ namespace Propane
             }
         }
 
-        private readonly List<Type> types = new List<Type>();
+        private readonly List<Type> types = new();
         private Type GetType(TypeIdx type)
         {
             int idx = (int)type;
@@ -1624,7 +1624,7 @@ namespace Propane
             return types[idx];
         }
 
-        private readonly List<Method> methods = new List<Method>();
+        private readonly List<Method> methods = new();
         private Method GetMethod(MethodIdx method)
         {
             int idx = (int)method;
@@ -1635,8 +1635,8 @@ namespace Propane
             return methods[idx];
         }
 
-        private readonly List<Signature> signatures = new List<Signature>();
-        private readonly Dictionary<BinaryKey, SignatureIdx> signatureLookup = new Dictionary<BinaryKey, SignatureIdx>();
+        private readonly List<Signature> signatures = new();
+        private readonly Dictionary<BinaryKey, SignatureIdx> signatureLookup = new();
         private Signature GetSignature(SignatureIdx signature)
         {
             int idx = (int)signature;
@@ -1647,8 +1647,8 @@ namespace Propane
             return signatures[idx];
         }
 
-        private readonly List<Offset> offsets = new List<Offset>();
-        private readonly Dictionary<BinaryKey, OffsetIdx> offsetLookup = new Dictionary<BinaryKey, OffsetIdx>();
+        private readonly List<Offset> offsets = new();
+        private readonly Dictionary<BinaryKey, OffsetIdx> offsetLookup = new();
         private Offset GetOffset(OffsetIdx offset)
         {
             int idx = (int)offset;
@@ -1661,15 +1661,15 @@ namespace Propane
 
         private class DataTable
         {
-            public List<Field> info = new List<Field>();
-            public BinaryWriter data = new BinaryWriter();
+            public List<Field> info = new();
+            public BinaryWriter data = new();
         }
-        private readonly DataTable globals = new DataTable();
-        private readonly DataTable constants = new DataTable();
+        private readonly DataTable globals = new();
+        private readonly DataTable constants = new();
 
         // Since the C# frontend cannot merge, there is no need for a metatable
         private readonly string fileName;
-        private MetaIdx meta = MetaIdx.Invalid;
+        private readonly MetaIdx meta;
         public Index lineNumber = 0;
     }
 }

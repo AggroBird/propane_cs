@@ -36,11 +36,11 @@ namespace Propane
             [FieldOffset(0)] public uint value;
         }
 
-        public static Endianness endianness
+        public static Endianness Endianness
         {
             get
             {
-                EndianBytes32 u32 = new EndianBytes32
+                EndianBytes32 u32 = new()
                 {
                     bytes = new EndianBytes32.Bytes
                     {
@@ -51,19 +51,18 @@ namespace Propane
                     }
                 };
 
-                switch (u32.value)
+                return u32.value switch
                 {
-                    case 0x04030201u: return Endianness.Little;
-                    case 0x01020304u: return Endianness.Big;
-                    case 0x02010403u: return Endianness.LittleWord;
-                    case 0x03040102u: return Endianness.BigWord;
-                }
-
-                return Endianness.Unknown;
+                    0x04030201u => Endianness.Little,
+                    0x01020304u => Endianness.Big,
+                    0x02010403u => Endianness.LittleWord,
+                    0x03040102u => Endianness.BigWord,
+                    _ => Endianness.Unknown,
+                };
             }
         }
 
-        public static Architecture architecture
+        public static Architecture Architecture
         {
             get
             {
@@ -80,7 +79,7 @@ namespace Propane
             }
         }
 
-        public static ulong version
+        public static ulong VersionNumber
         {
             get
             {
@@ -112,8 +111,8 @@ namespace Propane
                     }
 
                     byte endianArch = 0;
-                    endianArch |= (byte)((int)endianness << 4);
-                    endianArch |= (byte)architecture;
+                    endianArch |= (byte)((int)Endianness << 4);
+                    endianArch |= (byte)Architecture;
                     ptr[idx] = endianArch;
 
                     return result;
