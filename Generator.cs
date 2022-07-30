@@ -620,6 +620,11 @@ namespace Propane
             {
                 if (addr.header.Type == Address.Type.Constant)
                 {
+                    if (addr.header.Prefix != Address.Prefix.None || addr.header.Modifier != Address.Modifier.None)
+                    {
+                        throw new Exception();
+                    }
+
                     return true;
                 }
 
