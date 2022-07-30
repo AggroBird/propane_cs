@@ -169,6 +169,38 @@ namespace Propane
         {
             return !lhs.Equals(rhs);
         }
+
+        public override string ToString()
+        {
+            return header.Prefix switch
+            {
+                Prefix.Indirection => $"*{ModifierToString()}",
+                Prefix.AddressOf => $"&{ModifierToString()}",
+                Prefix.SizeOf => $"!{ModifierToString()}",
+                _ => ModifierToString(),
+            };
+        }
+        private string ModifierToString()
+        {
+            return header.Modifier switch
+            {
+                Modifier.DirectField => $"{ModifierToString()}.({payload.field})",
+                Modifier.IndirectField => $"{ModifierToString()}->({payload.field})",
+                Modifier.Offset => $"{ModifierToString()}[{payload.offset}]",
+                _ => TypeToString(),
+            };
+        }
+        private string TypeToString()
+        {
+            return header.Type switch
+            {
+                Type.Stackvar => $"[{header.Index}]",
+                Type.Parameter => $"({header.Index})",
+                Type.Global => $"global",
+                Type.Constant => $"constant",
+                _ => "<???>",
+            };
+        }
     }
 
     [StructLayout(LayoutKind.Explicit, Pack = 4)]
