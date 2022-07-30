@@ -196,8 +196,26 @@ namespace Propane
             {
                 Type.Stackvar => $"[{header.Index}]",
                 Type.Parameter => $"({header.Index})",
-                Type.Global => $"global",
-                Type.Constant => $"constant",
+                Type.Global => $"global({header.Index})",
+                Type.Constant => ConstantToString(),
+                _ => "<???>",
+            };
+        }
+        private string ConstantToString()
+        {
+            return (TypeIdx)header.Index switch
+            {
+                TypeIdx.I8 => payload.i8.ToString(),
+                TypeIdx.U8 => payload.u8.ToString(),
+                TypeIdx.I16 => payload.i16.ToString(),
+                TypeIdx.U16 => payload.u16.ToString(),
+                TypeIdx.I32 => payload.i32.ToString(),
+                TypeIdx.U32 => payload.u32.ToString(),
+                TypeIdx.I64 => payload.i64.ToString(),
+                TypeIdx.U64 => payload.u64.ToString(),
+                TypeIdx.F32 => payload.f32.ToString(),
+                TypeIdx.F64 => payload.f64.ToString(),
+                TypeIdx.VPtr => payload.vptr.ToString(),
                 _ => "<???>",
             };
         }
