@@ -769,21 +769,27 @@ namespace Propane
             {
                 if (ValidateLabel(label))
                 {
-                    bytecode.Write(op);
-                    WriteLabelAddr(label);
-                    WriteSubcodeZero();
-                    WriteAddress(lhs);
+                    if (ValidateAddress(lhs))
+                    {
+                        bytecode.Write(op);
+                        WriteLabelAddr(label);
+                        WriteSubcodeZero();
+                        WriteAddress(lhs);
+                    }
                 }
             }
             private void WriteBranch(Opcode op, LabelIdx label, Address lhs, Address rhs)
             {
                 if (ValidateLabel(label))
                 {
-                    bytecode.Write(op);
-                    WriteLabelAddr(label);
-                    WriteSubcodeZero();
-                    WriteAddress(lhs);
-                    WriteOperand(rhs);
+                    if (ValidateAddress(lhs) && ValidateOperand(rhs))
+                    {
+                        bytecode.Write(op);
+                        WriteLabelAddr(label);
+                        WriteSubcodeZero();
+                        WriteAddress(lhs);
+                        WriteOperand(rhs);
+                    }
                 }
             }
 
