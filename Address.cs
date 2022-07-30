@@ -184,9 +184,9 @@ namespace Propane
         {
             return header.Modifier switch
             {
-                Modifier.DirectField => $"{ModifierToString()}.({payload.field})",
-                Modifier.IndirectField => $"{ModifierToString()}->({payload.field})",
-                Modifier.Offset => $"{ModifierToString()}[{payload.offset}]",
+                Modifier.DirectField => $"{TypeToString()}.({payload.field})",
+                Modifier.IndirectField => $"{TypeToString()}->({payload.field})",
+                Modifier.Offset => $"{TypeToString()}[{payload.offset}]",
                 _ => TypeToString(),
             };
         }
