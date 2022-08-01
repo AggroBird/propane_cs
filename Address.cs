@@ -194,7 +194,7 @@ namespace Propane
         {
             return header.Type switch
             {
-                Type.Stackvar => $"[{header.Index}]",
+                Type.Stackvar => header.Index == Header.IndexMax ? "[^]" : $"[{header.Index}]",
                 Type.Parameter => $"({header.Index})",
                 Type.Global => $"global({header.Index})",
                 Type.Constant => ConstantToString(),

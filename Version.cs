@@ -4,6 +4,6 @@ namespace Propane
     {
         public const ushort VersionMajor = 1;
         public const ushort VersionMinor = 1;
-        public const uint VersionChangelist = 2205;
+        public const uint VersionChangelist = 2226;
     }
 }
